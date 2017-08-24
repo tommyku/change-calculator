@@ -89,23 +89,14 @@
           });
         }
 
-        payment(amount, option = { maxCoin: false }) {
-          // TODO: fix the case for maxCoin = true, try 1.05 with 5p, 1n and 2d
-          const walletAmount = this.amount();
-          const result = {};
-          this.supportedCoinTypes.forEach((coinType) => result[coinType.name] = 0);
+        minCoin(result, amount) {
+          let tmpAmount = amount;
 
-          if (walletAmount < amount) {
+          if (this.amount() < amount) {
             throw new Error('Not enough moeny');
-          } else if (walletAmount === amount) {
-            Object.values(this.pockets).forEach((pocket) => {
-              result[pocket.getCoinType().name] = pocket.count;
-            });
           } else {
-            const coinsTypes = this.sortedCoinTypes({ ascending: option.minCoin });
-            let tmpAmount = amount;
+            const coinsTypes = this.sortedCoinTypes({ ascending: false });
             coinsTypes.forEach((coinType) => {
-              console.log(coinType.name, tmpAmount);
               const coinCount = this.pockets[coinType.name].count;
               const coinAmount = coinCount * coinType.VALUE;
               if (coinAmount <= tmpAmount) {
@@ -117,12 +108,41 @@
                 result[coinType.name] = maxTaken;
               }
               tmpAmount = tmpAmount.toFixed(2);
+
               if (tmpAmount === 0) return result;
             });
           }
+
+          if (tmpAmount != 0) throw new Error('No such combination');
+
           return result;
         }
+
+        maxCoin(result, amount) {
+          // TODO: fix the case for maxCoin = true, try 1.05 with 5p, 1n and 2d
+          return result;
+        }
+
+        payment(amount, option = { maxCoin: false }) {
+          const result = {};
+          this.supportedCoinTypes.forEach((coinType) => result[coinType.name] = 0);
+
+          return option.maxCoin ? this.maxCoin(result, amount) : this.minCoin(result, amount);
+        }
       }
+      const wallet = new Wallet();
+      wallet.add(Quarter, 2);
+      wallet.add(Penny, 7);
+      console.log(wallet.payment(0.57)); // base case
+
+      const unluckyWallet = new Wallet();
+      unluckyWallet.add(Penny, 5);
+      unluckyWallet.add(Nickel, 1);
+      unluckyWallet.add(Dollar, 2);
+      // console.log(unluckyWallet.payment(0.11)); // no such combination
+      // console.log(unluckyWallet.payment(1.05, { maxCoin: true })); // shuold be 1d, 5p
+      // console.log(unluckyWallet.payment(1.04, { maxCoin: true })); // shuold be 1d, 4p
+      console.log(unluckyWallet.payment(1.04, { maxCoin: false })); // works
     </script>
   </body>
 </html>
