@@ -1,0 +1,128 @@
+<html>
+  <body>
+    <script type='text/javascript'>
+      class Coin {
+      }
+
+      class Penny extends Coin {
+        static get VALUE() {
+          return 0.01;
+        }
+      }
+
+      class Nickel extends Coin {
+        static get VALUE() {
+          return 0.05;
+        }
+      }
+
+      class Dime extends Coin {
+        static get VALUE() {
+          return 0.1;
+        }
+      }
+
+      class Quarter extends Coin {
+        static get VALUE() {
+          return 0.25;
+        }
+      }
+
+      class HalfDollar extends Coin {
+        static get VALUE() {
+          return 0.5;
+        }
+      }
+
+      class Dollar extends Coin {
+        static get VALUE() {
+          return 1;
+        }
+      }
+
+      class Pocket {
+        constructor(coinPrototype) {
+          this.coinType = coinPrototype
+          this.count = 0;
+        }
+
+        add(count) {
+          this.count += count;
+        }
+
+        take(count) {
+          if (count > this.count) throw new Error('Not enough coins to take')
+          this.count -= count;
+        }
+
+        getCoinType() {
+          return this.coinType;
+        }
+      }
+
+      class Wallet {
+        constructor() {
+          this.pockets = {};
+          this.supportedCoinTypes = [Penny, Nickel, Dime, Quarter, HalfDollar, Dollar];
+          this.supportedCoinTypes.forEach((coinType) => {
+            this.pockets[coinType.name] = new Pocket(coinType);
+          });
+        }
+
+        amount() {
+          return Object.values(this.pockets).reduce((sum, pocket)=> {
+            return sum + pocket.count * pocket.getCoinType().VALUE
+          }, 0);
+        }
+
+        add(coinType, count) {
+          this.pockets[coinType.name].add(count);
+        }
+
+        take(coinType, count) {
+          this.pockets[coinType.name].take(count);
+        }
+
+        sortedCoinTypes(option = { ascending: true }) {
+          return this.supportedCoinTypes.sort((coinTypeA, coinTypeB) => {
+            return (coinTypeA.VALUE - coinTypeB.VALUE) * option.ascending ? -1 : 1;
+          });
+        }
+
+        payment(amount, option = { maxCoin: false }) {
+          // TODO: fix the case for maxCoin = true, try 1.05 with 5p, 1n and 2d
+          const walletAmount = this.amount();
+          const result = {};
+          this.supportedCoinTypes.forEach((coinType) => result[coinType.name] = 0);
+
+          if (walletAmount < amount) {
+            throw new Error('Not enough moeny');
+          } else if (walletAmount === amount) {
+            Object.values(this.pockets).forEach((pocket) => {
+              result[pocket.getCoinType().name] = pocket.count;
+            });
+          } else {
+            const coinsTypes = this.sortedCoinTypes({ ascending: option.minCoin });
+            let tmpAmount = amount;
+            coinsTypes.forEach((coinType) => {
+              console.log(coinType.name, tmpAmount);
+              const coinCount = this.pockets[coinType.name].count;
+              const coinAmount = coinCount * coinType.VALUE;
+              if (coinAmount <= tmpAmount) {
+                tmpAmount -= coinAmount;
+                result[coinType.name] = coinCount;
+              } else {
+                const maxTaken = parseInt(tmpAmount / coinType.VALUE, 10);
+                tmpAmount -= coinType.VALUE * maxTaken;
+                result[coinType.name] = maxTaken;
+              }
+              tmpAmount = tmpAmount.toFixed(2);
+              if (tmpAmount === 0) return result;
+            });
+          }
+          return result;
+        }
+      }
+    </script>
+  </body>
+</html>
