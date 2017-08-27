@@ -32,7 +32,7 @@ class Wallet {
   minCoin(result, amount) {
     let tmpAmount = amount;
 
-    if (this.amount() < amount) {
+    if (amount > 0 && this.amount() < amount) {
       throw new Error('Not enough moeny');
     } else {
       const coinsTypes = this.sortedCoinTypes({ ascending: false });

@@ -2,6 +2,7 @@ class App {
   constructor(id) {
     this.dom = document.getElementById(id);
     this.input = this.dom.querySelectorAll('#price')[0];
+    this.payButton = this.dom.querySelectorAll('#pay')[0];
     this.paymentDisplay = this.dom.querySelectorAll('#payment-display')[0];
     this.amountDisplay = this.dom.querySelectorAll('#amount-display')[0];
     this.control = this.dom.querySelectorAll('#control')[0];
@@ -29,6 +30,7 @@ class App {
     this.control.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', (e) => this.handleAndUpdateUI(e, this.handleControlClick));
     });
+    this.payButton.addEventListener('click', (e) => this.handleAndUpdateUI(e, this.handlePayClick));
   }
 
   createWalletControl() {
@@ -42,6 +44,14 @@ class App {
     });
   }
 
+  payment() {
+    return this.values.wallet.payment(this.values.price);
+  }
+
+  save() {
+    localStorage.setItem('change-calc:pockets', JSON.stringify(this.values.wallet.pockets));
+  }
+
   handleControlClick(e) {
     const button = e.target;
     const action = e.target.dataset.action;
@@ -51,11 +61,17 @@ class App {
     } else if (action === 'take') {
       this.values.wallet.take(coinType, 1);
     }
-    localStorage.setItem('change-calc:pockets', JSON.stringify(this.values.wallet.pockets));
+  }
+
+  handlePayClick(e) {
+    const payment = this.payment();
+    Object.keys(payment).forEach((coinTypeName) => this.values.wallet.take(coinTypeName, payment[coinTypeName]));
+    this.input.value = 0;
   }
 
   handleAndUpdateUI(e, handler) {
     handler.bind(this)(e);
+    this.save();
     this.updateUI();
   }
 
@@ -67,7 +83,7 @@ class App {
     let paymentDisplay;
     try {
       paymentDisplay = isNaN(this.values.price) ?
-        'No idea' : JSON.stringify(this.values.wallet.payment(this.values.price));
+        'No idea' : JSON.stringify(this.payment())
     } catch(e) {
       paymentDisplay = e.message;
     }
