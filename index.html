@@ -1,27 +1,13 @@
 <html>
   <body>
+    <main id='main'>
+      <input type='number' id='price' min='0' step='0.01' />
+      <p id='payment-display'></p>
+      <p id='amount-display'></p>
+    </main>
     <script type='text/javascript' src='./coin.js'></script>
     <script type='text/javascript' src='./pocket.js'></script>
     <script type='text/javascript' src='./wallet.js'></script>
-    <script type='text/javascript'>
-      const wallet = new Wallet();
-      wallet.add(Quarter, 2);
-      wallet.add(Penny, 7);
-      console.log(wallet.sortedCoinTypes({ ascending: true }));
-      console.log(wallet.sortedCoinTypes({ ascending: false }));
-      console.log(wallet.payment(0.57)); // base case
-      console.log(wallet.payment(0.51)); // base case
-      console.log(wallet.payment(0.52)); // base case
-      console.log(wallet.payment(0.26)); // base case
-
-      const unluckyWallet = new Wallet();
-      unluckyWallet.add(Penny, 5);
-      unluckyWallet.add(Nickel, 1);
-      unluckyWallet.add(Quarter, 4);
-      unluckyWallet.add(Dollar, 2);
-      console.log(unluckyWallet.payment(1.04, { maxCoin: true })); // shuold be 4q, 4p
-      console.log(unluckyWallet.payment(1.05, { maxCoin: true })); // shuold be 4q, 5p
-      console.log(unluckyWallet.payment(0.11)); // no such combination
-    </script>
+    <script type='text/javascript' src='./app.js'></script>
   </body>
 </html>
