@@ -16,7 +16,12 @@ class App {
   }
 
   fillWalletFromStorage() {
-    // TODO: implement this
+    const pocketsJSON = localStorage.getItem('change-calc:pockets');
+    if (pocketsJSON === null) return;
+    const pockets = JSON.parse(pocketsJSON);
+    Object.keys(pockets).forEach((coinTypeName) => {
+      this.values.wallet.add(coinTypeName, pockets[coinTypeName].count);
+    });
   }
 
   registerEventHandlers() {
@@ -46,6 +51,7 @@ class App {
     } else if (action === 'take') {
       this.values.wallet.take(coinType, 1);
     }
+    localStorage.setItem('change-calc:pockets', JSON.stringify(this.values.wallet.pockets));
   }
 
   handleAndUpdateUI(e, handler) {
