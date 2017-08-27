@@ -1,8 +1,7 @@
 class Wallet {
   constructor() {
     this.pockets = {};
-    this.supportedCoinTypes = [Penny, Nickel, Dime, Quarter, HalfDollar, Dollar];
-    this.supportedCoinTypes.forEach((coinType) => {
+    Wallet.supportedCoinTypes.forEach((coinType) => {
       this.pockets[coinType.name] = new Pocket(coinType);
     });
   }
@@ -14,15 +13,17 @@ class Wallet {
   }
 
   add(coinType, count) {
-    this.pockets[coinType.name].add(count);
+    const coinTypeKey = (typeof coinType == 'string') ? coinType : coinType.name;
+    this.pockets[coinTypeKey].add(count);
   }
 
   take(coinType, count) {
-    this.pockets[coinType.name].take(count);
+    const coinTypeKey = (typeof coinType == 'string') ? coinType : coinType.name;
+    this.pockets[coinTypeKey].take(count);
   }
 
   sortedCoinTypes(option = { ascending: true }) {
-    const supportedCoinTypes = this.supportedCoinTypes.map((type) => type);
+    const supportedCoinTypes = Wallet.supportedCoinTypes.map((type) => type);
     return supportedCoinTypes.sort((coinTypeA, coinTypeB) => {
       return (coinTypeA.VALUE < coinTypeB.VALUE ? -1 : 1) * (option.ascending ? 1 : -1);
     });
@@ -106,8 +107,10 @@ class Wallet {
 
   payment(amount, option = { maxCoin: false }) {
     const result = {};
-    this.supportedCoinTypes.forEach((coinType) => result[coinType.name] = 0);
+    Wallet.supportedCoinTypes.forEach((coinType) => result[coinType.name] = 0);
 
     return option.maxCoin ? this.maxCoin(result, amount) : this.minCoin(result, amount);
   }
 }
+
+Wallet.supportedCoinTypes = [Penny, Nickel, Dime, Quarter, HalfDollar, Dollar];

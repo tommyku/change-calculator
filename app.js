@@ -4,11 +4,13 @@ class App {
     this.input = this.dom.querySelectorAll('#price')[0];
     this.paymentDisplay = this.dom.querySelectorAll('#payment-display')[0];
     this.amountDisplay = this.dom.querySelectorAll('#amount-display')[0];
+    this.control = this.dom.querySelectorAll('#control')[0];
     this.values = {
-      paymentDisplay: {},
+      price: 0,
       wallet: new Wallet()
     };
     this.fillWalletFromStorage();
+    this.createWalletControl();
     this.registerEventHandlers();
     this.updateUI();
   }
@@ -18,7 +20,32 @@ class App {
   }
 
   registerEventHandlers() {
-    this.input.addEventListener('keydown', (e)=> this.handleAndUpdateUI(e, this.handlePriceChange));
+    this.input.addEventListener('keyup', (e) => this.handleAndUpdateUI(e, this.handlePriceChange));
+    this.control.querySelectorAll('button').forEach((button) => {
+      button.addEventListener('click', (e) => this.handleAndUpdateUI(e, this.handleControlClick));
+    });
+  }
+
+  createWalletControl() {
+    Wallet.supportedCoinTypes.forEach((coinType) => {
+      this.control.innerHTML += `
+        <button data-coin-type=${coinType.name} data-action='add'>+</button>
+        <span class='coinDisplay' data-coin-type='${coinType.name}'></span>
+        <button data-coin-type=${coinType.name} data-action='take'>-</button>
+        <br />
+      `;
+    });
+  }
+
+  handleControlClick(e) {
+    const button = e.target;
+    const action = e.target.dataset.action;
+    const coinType = e.target.dataset.coinType;
+    if (action === 'add') {
+      this.values.wallet.add(coinType, 1);
+    } else if (action === 'take') {
+      this.values.wallet.take(coinType, 1);
+    }
   }
 
   handleAndUpdateUI(e, handler) {
@@ -27,17 +54,26 @@ class App {
   }
 
   handlePriceChange(e) {
-    const price = parseFloat(e.target.value, 10).toFixed(2);
-    if (isNaN(price)) return;
-    this.values.paymentDisplay = this.values.wallet.payment(price);
+    this.values.price = parseFloat(e.target.value, 10).toFixed(2);
   }
 
   updateUI() { // because I am lazy
-    this.paymentDisplay.innerHTML = JSON.stringify(this.values.paymentDisplay);
+    let paymentDisplay;
+    try {
+      paymentDisplay = isNaN(this.values.price) ?
+        'No idea' : JSON.stringify(this.values.wallet.payment(this.values.price));
+    } catch(e) {
+      paymentDisplay = e.message;
+    }
+    this.paymentDisplay.innerHTML = paymentDisplay;
     this.amountDisplay.innerHTML = this.values
       .wallet
       .amount()
       .toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    Wallet.supportedCoinTypes.forEach((coinType) => {
+      const span = this.control.querySelectorAll(`span[data-coin-type='${coinType.name}']`)[0];
+      span.innerHTML = `${this.values.wallet.pockets[coinType.name].count} ${coinType.name}`;
+    });
   }
 }
 
